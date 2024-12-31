@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form Pemesanan Kamar</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 80%;
+            margin: auto;
+            overflow: hidden;
+        }
+        .form-section, .data-section {
+            margin-top: 30px;
+            padding: 20px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .form-section h2, .data-section h2 {
+            text-align: center;
+        }
+        .form-section input, .form-section select, .form-section button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .form-section input[type="checkbox"] {
+            width: auto;
+            margin-right: 10px;
+        }
+        .form-section button {
+            background-color: #333;
+            color: white;
+            cursor: pointer;
+        }
+        .form-section button:hover {
+            background-color: #555;
+        }
+        table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid #ccc;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Form Pemesanan -->
+    <div class="form-section">
+        <h2>Silahkan Pesan Kamar</h2>
+        <form id="bookingForm">
+            <label for="nama">Nama Lengkap:</label>
+            <input type="text" id="nama" name="nama" required>
+
+            <label for="identitas">Nomor Identitas:</label>
+            <input type="text" id="identitas" name="identitas" required>
+
+            <label for="tipe_kamar">Tipe Kamar:</label>
+            <select id="tipe_kamar" name="tipe_kamar" required>
+                <option value="Deluxe" data-harga="1000000">Deluxe - Rp 1,000,000/malam</option>
+                <option value="Standard" data-harga="750000">Standard - Rp 750,000/malam</option>
+                <option value="Honeymoon" data-harga="1500000">Honeymoon - Rp 1,300,000/malam</option>
+                <option value="Family" data-harga="1500000">Family - Rp 1,500,000/malam</option>
+            </select>
+
+            <label for="tanggal_pesan">Tanggal Pesan:</label>
+            <input type="date" id="tanggal_pesan" name="tanggal_pesan" required>
+
+            <label for="durasi">Durasi Menginap (malam):</label>
+            <input type="number" id="durasi" name="durasi" min="1" required>
+
+            <label for="breakfast">
+                <input type="checkbox" id="breakfast" name="breakfast" value="50000">
+                Termasuk Sarapan (Rp 50,000/malam)
+            </label>
+
+            <button type="submit">Pesan Sekarang</button>
+        </form>
+    </div>
+    <script>
+        document.getElementById("bookingForm").addEventListener("submit", function(event) {
+            event.preventDefault(); // Mencegah form submit default
+    
+            // Mengambil data dari form
+            const nama = document.getElementById("nama").value;
+            const identitas = document.getElementById("identitas").value;
+            const tipeKamar = document.getElementById("tipe_kamar");
+            const tipeKamarValue = tipeKamar.options[tipeKamar.selectedIndex].value;
+            const hargaKamar = parseInt(tipeKamar.options[tipeKamar.selectedIndex].getAttribute("data-harga"));
+            const tanggalPesan = document.getElementById("tanggal_pesan").value;
+            const durasi = parseInt(document.getElementById("durasi").value);
+            const includeBreakfast = document.getElementById("breakfast").checked;
+            const breakfastCost = includeBreakfast ? 50000 : 0;
+    
+            // Hitung total biaya
+            const totalBiaya = (hargaKamar + breakfastCost) * durasi;
+    
+            // Data yang akan ditambahkan ke dashboard.html
+            const newData = `
+                <tr>
+                    <td>${nama}</td>
+                    <td>${identitas}</td>
+                    <td>${tipeKamarValue}</td>
+                    <td>${tanggalPesan}</td>
+                    <td>${durasi}</td>
+                    <td>${includeBreakfast ? "Ya" : "Tidak"}</td>
+                    <td>Rp ${totalBiaya.toLocaleString()}</td>
+                    <td><button class='edit-btn'>Edit</button></td>
+                    <td><button class='delete-btn'>Hapus</button></td>
+                </tr>
+            `;
+    
+            // Simpan data ke dashboard.html menggunakan LocalStorage (simulasi penyimpanan file)
+            const dashboardData = localStorage.getItem("dashboardData") || "";
+            localStorage.setItem("dashboardData", dashboardData + newData);
+    
+            alert("Pemesanan berhasil disimpan!");
+            document.getElementById("bookingForm").reset(); // Reset form setelah submit
+        });
+    
+        // Fungsi untuk memuat ulang tabel di dashboard.html
+        document.addEventListener("DOMContentLoaded", function() {
+            const dashboardTable = document.getElementById("dashboardTable");
+            dashboardTable.innerHTML = localStorage.getItem("dashboardData") || "";
+    
+            // Tambahkan event listener untuk tombol edit dan hapus
+            dashboardTable.addEventListener("click", function(event) {
+    if (event.target.classList.contains("delete-btn")) {
+        const row = event.target.closest("tr");
+        row.remove();
+        updateLocalStorage();
+    
+
+                } else if (event.target.classList.contains("edit-btn")) {
+                    // Edit baris data
+                    const row = event.target.closest("tr");
+                    const cells = row.querySelectorAll("td");
+                    const nama = prompt("Edit Nama:", cells[0].textContent);
+                    const identitas = prompt("Edit Nomor Identitas:", cells[1].textContent);
+                    const tipeKamar = prompt("Edit Tipe Kamar:", cells[2].textContent);
+                    const tanggalPesan = prompt("Edit Tanggal Pesan:", cells[3].textContent);
+                    const durasi = prompt("Edit Durasi Menginap:", cells[4].textContent);
+                    const includeBreakfast = confirm("Termasuk Sarapan? (OK = Ya, Cancel = Tidak)");
+    
+                    if (nama && identitas && tipeKamar && tanggalPesan && durasi) {
+                        cells[0].textContent = nama;
+                        cells[1].textContent = identitas;
+                        cells[2].textContent = tipeKamar;
+                        cells[3].textContent = tanggalPesan;
+                        cells[4].textContent = durasi;
+                        cells[5].textContent = includeBreakfast ? "Ya" : "Tidak";
+                        const hargaKamar = tipeKamar.includes("Deluxe") ? 1000000 : tipeKamar.includes("Standard") ? 750000 : tipeKamar.includes("Honeymoon") ? 1300000 : 1500000;
+                        const breakfastCost = includeBreakfast ? 50000 : 0;
+                        const totalBiaya = (hargaKamar + breakfastCost) * parseInt(durasi);
+                        cells[6].textContent = `Rp ${totalBiaya.toLocaleString()}`;
+                        updateLocalStorage();
+                    }
+                }
+            });
+        });
+    
+        // Fungsi untuk memperbarui LocalStorage
+        function updateLocalStorage() {
+    const rows = Array.from(document.querySelectorAll("#dashboardTable tr"));
+    const newData = rows.map(row => row.outerHTML).join("");
+    localStorage.setItem("dashboardData", newData);
+}
+
+    </script>
+    
+</body>
+</html>
+ 

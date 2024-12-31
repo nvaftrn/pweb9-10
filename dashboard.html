@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard Admin</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        margin: 0;
+        padding: 20px;
+      }
+      nav {
+        background-color: #333;
+        color: white;
+        padding: 10px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: sticky;
+        top: 0;
+        z-index: 1000; 
+      }
+      nav a {
+        color: white;
+        text-decoration: none;
+        margin: 0 15px;
+      }
+      nav a:hover {
+        text-decoration: underline;
+      }
+      section {
+        margin-bottom: 40px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+      th,
+      td {
+        padding: 15px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+      }
+      th {
+        background-color: #333;
+        color: white;
+      }
+      button {
+        padding: 5px 10px;
+        margin: 0;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+      .edit-btn {
+        background-color: #f9c74f;
+        color: black;
+      }
+      .delete-btn {
+        background-color: #f94144;
+        color: white;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <nav>
+      <div>Admin Dashboard</div>
+      <div>
+        <a href="#kamar">Kamar</a>
+        <a href="#fasilitas">Fasilitas</a>
+        <a href="#pemesanan">Pemesanan</a>
+      </div>
+    </nav>
+
+    <section id="kamar">
+      <h2>Kelola Kamar</h2>
+      <form id="formKamar">
+        <label for="jenisKamar">Jenis Kamar:</label>
+        <input type="text" id="jenisKamar" required />
+        <label for="hargaKamar">Harga:</label>
+        <input type="number" id="hargaKamar" required />
+        <button type="button" id="tambahKamar">Tambah</button>
+      </form>
+      <table id="tabelKamar">
+        <thead>
+          <tr>
+            <th>Jenis Kamar</th>
+            <th>Harga</th>
+            <th>Edit</th>
+            <th>Hapus</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <section id="fasilitas">
+      <h2>Kelola Fasilitas</h2>
+      <form id="formFasilitas">
+        <label for="namaFasilitas">Nama Fasilitas:</label>
+        <input type="text" id="namaFasilitas" required />
+        <button type="button" id="tambahFasilitas">Tambah</button>
+      </form>
+      <table id="tabelFasilitas">
+        <thead>
+          <tr>
+            <th>Nama Fasilitas</th>
+            <th>Edit</th>
+            <th>Hapus</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <section id="pemesanan">
+      <h2>Kelola Pemesanan</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Nama Lengkap</th>
+            <th>Nomor Identitas</th>
+            <th>Tipe Kamar</th>
+            <th>Tanggal Pesan</th>
+            <th>Durasi Menginap</th>
+            <th>Termasuk Sarapan</th>
+            <th>Total Biaya</th>
+            <th>Edit</th>
+            <th>Hapus</th>
+          </tr>
+        </thead>
+        <tbody id="dashboardTable"></tbody>
+      </table>
+    </section>
+
+    <script>
+      // Kelola Kamar
+      document.getElementById("tambahKamar").addEventListener("click", function () {
+        const jenisKamar = document.getElementById("jenisKamar").value;
+        const hargaKamar = document.getElementById("hargaKamar").value;
+
+        if (jenisKamar && hargaKamar) {
+          const tabelKamar = document.querySelector("#tabelKamar tbody");
+          const row = document.createElement("tr");
+
+          row.innerHTML = `
+            <td>${jenisKamar}</td>
+            <td>Rp ${parseInt(hargaKamar).toLocaleString()}</td>
+            <td><button class="edit-btn">Edit</button></td>
+            <td><button class="delete-btn">Hapus</button></td>
+          `;
+
+          tabelKamar.appendChild(row);
+          document.getElementById("jenisKamar").value = "";
+          document.getElementById("hargaKamar").value = "";
+          updateLocalStorageKamar();
+        }
+      });
+
+      document.querySelector("#tabelKamar tbody").addEventListener("click", function (event) {
+        const target = event.target;
+        const row = target.closest("tr");
+
+        if (target.classList.contains("delete-btn")) {
+          row.remove();
+          updateLocalStorageKamar();
+        } else if (target.classList.contains("edit-btn")) {
+          const cells = row.querySelectorAll("td");
+          const newJenis = prompt("Edit Jenis Kamar:", cells[0].textContent);
+          const newHarga = prompt("Edit Harga Kamar:", cells[1].textContent.replace("Rp ", "").replace(/,/g, ""));
+
+          if (newJenis && newHarga) {
+            cells[0].textContent = newJenis;
+            cells[1].textContent = `Rp ${parseInt(newHarga).toLocaleString()}`;
+            updateLocalStorageKamar();
+          }
+        }
+      });
+
+      function updateLocalStorageKamar() {
+        const rows = Array.from(document.querySelectorAll("#tabelKamar tbody tr"));
+        const data = rows.map((row) => row.outerHTML).join("");
+        localStorage.setItem("kamarData", data);
+      }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        const kamarData = localStorage.getItem("kamarData") || "";
+        document.querySelector("#tabelKamar tbody").innerHTML = kamarData;
+      });
+
+      // Kelola Fasilitas
+      document.getElementById("tambahFasilitas").addEventListener("click", function () {
+        const namaFasilitas = document.getElementById("namaFasilitas").value;
+
+        if (namaFasilitas) {
+          const tabelFasilitas = document.querySelector("#tabelFasilitas tbody");
+          const row = document.createElement("tr");
+
+          row.innerHTML = `
+            <td>${namaFasilitas}</td>
+            <td><button class="edit-btn">Edit</button></td>
+            <td><button class="delete-btn">Hapus</button></td>
+          `;
+
+          tabelFasilitas.appendChild(row);
+          document.getElementById("namaFasilitas").value = "";
+          updateLocalStorageFasilitas();
+        }
+      });
+
+      document.querySelector("#tabelFasilitas tbody").addEventListener("click", function (event) {
+        const target = event.target;
+        const row = target.closest("tr");
+
+        if (target.classList.contains("delete-btn")) {
+          row.remove();
+          updateLocalStorageFasilitas();
+        } else if (target.classList.contains("edit-btn")) {
+          const cells = row.querySelectorAll("td");
+          const newNama = prompt("Edit Nama Fasilitas:", cells[0].textContent);
+
+          if (newNama) {
+            cells[0].textContent = newNama;
+            updateLocalStorageFasilitas();
+          }
+        }
+      });
+
+      function updateLocalStorageFasilitas() {
+        const rows = Array.from(document.querySelectorAll("#tabelFasilitas tbody tr"));
+        const data = rows.map((row) => row.outerHTML).join("");
+        localStorage.setItem("fasilitasData", data);
+      }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        const fasilitasData = localStorage.getItem("fasilitasData") || "";
+        document.querySelector("#tabelFasilitas tbody").innerHTML = fasilitasData;
+      });
+
+      // Kelola Pemesanan
+      document.addEventListener("DOMContentLoaded", function () {
+        const dashboardTable = document.getElementById("dashboardTable");
+        dashboardTable.innerHTML = localStorage.getItem("dashboardData") || "";
+
+        // Tambahkan event listener untuk tombol edit saja
+        dashboardTable.addEventListener("click", function (event) {
+          if (event.target.classList.contains("edit-btn")) {
+            // Edit baris data
+            const row = event.target.closest("tr");
+            const cells = row.querySelectorAll("td");
+            const nama = prompt("Edit Nama:", cells[0].textContent);
+            const identitas = prompt("Edit Nomor Identitas:", cells[1].textContent);
+            const tipeKamar = prompt("Edit Tipe Kamar:", cells[2].textContent);
+            const tanggalPesan = prompt("Edit Tanggal Pesan:", cells[3].textContent);
+            const durasi = prompt("Edit Durasi Menginap:", cells[4].textContent);
+            const includeBreakfast = confirm("Termasuk Sarapan? (OK = Ya, Cancel = Tidak)");
+
+            if (nama && identitas && tipeKamar && tanggalPesan && durasi) {
+              cells[0].textContent = nama;
+              cells[1].textContent = identitas;
+              cells[2].textContent = tipeKamar;
+              cells[3].textContent = tanggalPesan;
+              cells[4].textContent = durasi;
+              cells[5].textContent = includeBreakfast ? "Ya" : "Tidak";
+              const hargaKamar = tipeKamar.includes("Deluxe") ? 1000000 : tipeKamar.includes("Standard") ? 750000 : tipeKamar.includes("Honeymoon") ? 1300000 : 1500000;
+              const breakfastCost = includeBreakfast ? 50000 : 0;
+              const totalBiaya = (hargaKamar + breakfastCost) * parseInt(durasi);
+              cells[6].textContent = `Rp ${totalBiaya.toLocaleString()}`;
+              updateLocalStoragePemesanan();
+            }
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
